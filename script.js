@@ -18,6 +18,7 @@ const boxCenter = [
 let gamePlay = false;
 let hit = false;
 let isPowerUp = false;
+let powerRand = 0;
 let player;
 let animateGame;
 let states = [false, false, false, false];
@@ -73,7 +74,9 @@ function moveEnemy() {
 		
 		if(isCollide(box, enemy)) {
 			hit = true;
-			player.lives--;
+			player.lives -= ENEMY_DAMAGE;
+			enemy.parentNode.removeChild(enemy);
+			badmaker();
 			if(player.lives <= 0) { gameOver();}
 		}
 	}
@@ -81,6 +84,9 @@ function moveEnemy() {
 	if(hit) {
 		base.style.backgroundColor = 'red';
 		hit = false;
+		isPowerUp = false;
+		powerRand = 0;
+		powerupMaker();
 	}else {
 		base.style.backgroundColor = '';
 	}
@@ -104,15 +110,11 @@ function movePowerUps() {
 					shot.parentNode.removeChild(shot);
 					powerUp.parentNode.removeChild(powerUp);
 					isPowerUp = true;
+					powerRand = randomMe(NUMBER_OF_POWER_UPS);
 					break;
 				}
 			}
 		}
-	}
-
-	if(isPowerUp){
-		//powerupMaker();
-		//isPowerUp = false; 
 	}
 
 
@@ -126,9 +128,10 @@ function gameOver() {
 	gameOverEle.querySelector('span').innerHTML = 'GAME OVER <br> Your Score' + player.score;
 	gamePlay = false;
 	enemyVelocity = STARTING_ENEMIES_VELOCITY;
-
+	isPowerUp = false;
 	let tempEnemys = document.querySelectorAll('.baddy');
 	let tempShots = document.querySelectorAll('.fireme');
+	let tempPowerUps = document.querySelectorAll('.power');
 
 	for(let i = 0; i < states.length; i++) {
 		states[i] = false;
@@ -141,6 +144,11 @@ function gameOver() {
 	for(let shot of tempShots) {
 		shot.parentNode.removeChild(shot);
 	}
+
+	for(let powerUp of tempPowerUps) {
+		powerUp.parentNode.removeChild(powerUp);
+	}
+
 }
 
 
@@ -176,7 +184,7 @@ function degRad(deg) {
 function mousedown(e) {
 	if(gamePlay){
 		if(isPowerUp){
-			powerUp(e);
+			powerUp(e, powerRand);
 		}else{
 			createShoot(e, 0);
 		}
@@ -186,8 +194,8 @@ function mousedown(e) {
 	}
 }
 
-function powerUp(e){
-	switch(randomMe(NUMBER_OF_POWER_UPS)){
+function powerUp(e, rand){
+	switch(rand){
 			case 0:
 				createShoot(e, 0);
 				createShoot(e, 0.25);
