@@ -1,5 +1,6 @@
 
 const icons = ["bars","bug","bowling-ball","coffee","couch","football-ball","gem","laptop"];
+const powerIcon = ["bomb"];
 const btnStart = document.querySelector('.btnStart');
 const gameOverEle = document.getElementById('gameOverEle');
 const container = document.getElementById('container');
@@ -16,6 +17,7 @@ const boxCenter = [
 
 let gamePlay = false;
 let hit = false;
+let isPowerUp = false;
 let player;
 let animateGame;
 let states = [false, false, false, false];
@@ -39,7 +41,7 @@ function startGame() {
 
 	//setup badguys
 	setupBadguys(STARTING_NUMBER_ENEMIES);
-
+	powerupMaker();
 
 	animateGame = requestAnimationFrame(playGame);
 
@@ -82,6 +84,37 @@ function moveEnemy() {
 	}else {
 		base.style.backgroundColor = '';
 	}
+
+}
+
+function movePowerUps() {
+	let tempPowerUps = document.querySelectorAll('.power');
+	let tempShots = document.querySelectorAll('.fireme');
+
+	for(let powerUp of tempPowerUps) {
+		if(powerUp.offsetTop > 550 || powerUp.offsetTop < 0 ||
+			powerUp.offsetLeft > 750 || powerUp.offsetLeft < 0) {
+			powerUp.parentNode.removeChild(powerUp);
+			powerupMaker();
+		}else {
+			powerUp.style.top = powerUp.offsetTop + powerUp.movery + 'px';
+			powerUp.style.left = powerUp.offsetLeft + powerUp.moverx + 'px';
+			for(let shot of tempShots) {
+				if(isCollide(shot, powerUp) && gamePlay){
+					shot.parentNode.removeChild(shot);
+					powerUp.parentNode.removeChild(powerUp);
+					isPowerUp = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if(isPowerUp){
+		//powerupMaker();
+		//isPowerUp = false; 
+	}
+
 
 }
 
@@ -142,13 +175,18 @@ function degRad(deg) {
 
 function mousedown(e) {
 	if(gamePlay){
-		createShoot(e, 0);
+		if(isPowerUp){
+			powerUp(e);
+		}else{
+			createShoot(e, 0);
+		}
+		
 		
 			
 	}
 }
 
-function powerUp(){
+function powerUp(e){
 	switch(randomMe(NUMBER_OF_POWER_UPS)){
 			case 0:
 				createShoot(e, 0);
@@ -252,6 +290,52 @@ function badmaker() {
 	container.appendChild(div);
 }
 
+function powerupMaker() {
+	let div = document.createElement('div');
+	let myIcon = 'fa-' + powerIcon[0];
+	let x, y, xmove, ymove;
+	let randomStart =  randomMe(4);
+	let dirSet = enemyVelocity;
+	let dirPos = randomMe(7) - 3;
+	switch(randomStart) {
+		case 0: 
+			x = 0;
+			y = randomMe(600);
+			ymove = dirPos;
+			xmove = dirSet;
+		break;
+		case 1: 
+			x = 800;
+			y = randomMe(600);
+			ymove = dirPos;
+			xmove = dirSet * -1;
+		break;
+		case 2: 
+			x = randomMe(800);
+			y = 0;
+			ymove = dirSet;
+			xmove = dirPos;
+		break;
+		case 3: 
+			x = randomMe(800);
+			y = 600;
+			ymove = dirSet * -1;
+			xmove = dirPos;
+		break;
+		default: console.log('something went wrong');  break;
+	} 
+	div.style.color = randomColor();
+	div.innerHTML = '<i class="fas ' + myIcon + '"></i>';
+	div.setAttribute('class','power');
+	div.style.fontSize = randomMe(20) + 30 + 'px';
+	div.style.left = x + 'px';
+	div.style.top  = y + 'px';
+	div.points = randomMe(5) + 1;
+	div.moverx = xmove; 
+	div.movery = ymove;
+	container.appendChild(div);
+}
+
 function randomColor() {
 	function c() {
 		let hex = randomMe(256).toString(16);
@@ -323,6 +407,8 @@ function playGame(argument) {
 		updateDash();
 		//move enemy
 		moveEnemy();
+		movePowerUps();
+
 		updateEnemyNumbers();
 		animateGame = requestAnimationFrame(playGame); 
 	}
