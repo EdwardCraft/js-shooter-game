@@ -1,6 +1,7 @@
 
-const icons = ["bars","bug","bowling-ball","coffee","couch","football-ball","gem","laptop"];
-const powerIcon = ["bomb"];
+const icons = ["grimace","bug","cog","frog","poo","tired","skull","low-vision"];
+const powerColors = ["#FF7575","#FF75FF","#7E75FF","#75EDFF","#75FF90","#F7FF75"];
+const powerIcon = ["shield-alt"];
 const btnStart = document.querySelector('.btnStart');
 const gameOverEle = document.getElementById('gameOverEle');
 const container = document.getElementById('container');
@@ -14,6 +15,13 @@ const boxCenter = [
 		box.offsetTop + (box.offsetHeight / 2)];
 
 //let rect = box.getBoundingClientRect();
+let powerColorFrames = powerColors.length;
+let powerSoud = new Audio('powerup.mp3');
+let hitSound  = new Audio('hit.mp3');
+let endGameSound =  new Audio('win.mp3');
+let powerupCurrentColor = "#FF7575";
+let index = 0;
+let count = 0;
 
 let gamePlay = false;
 let hit = false;
@@ -21,7 +29,7 @@ let isPowerUp = false;
 let powerRand = 0;
 let player;
 let animateGame;
-let states = [false, false, false, false];
+let states = [false, false, false, false, false];
 let enemyVelocity = STARTING_ENEMIES_VELOCITY;
 
 btnStart.addEventListener('click', startGame);
@@ -82,11 +90,16 @@ function moveEnemy() {
 	}
 
 	if(hit) {
+		hitSound.play();
 		base.style.backgroundColor = 'red';
 		hit = false;
 		isPowerUp = false;
 		powerRand = 0;
-		powerupMaker();
+		let box =  document.querySelector('.box');
+		box.style.backgroundColor = 'white';
+		let palyer = document.querySelector('#robotIcon');
+		palyer.style.color = 'red';
+		if(player.lives > 0)powerupMaker();
 	}else {
 		base.style.backgroundColor = '';
 	}
@@ -110,6 +123,7 @@ function movePowerUps() {
 					shot.parentNode.removeChild(shot);
 					powerUp.parentNode.removeChild(powerUp);
 					isPowerUp = true;
+					powerSoud.play();
 					powerRand = randomMe(NUMBER_OF_POWER_UPS);
 					break;
 				}
@@ -123,30 +137,36 @@ function movePowerUps() {
 
 
 function gameOver() {
+	endGameSound.play();
 	cancelAnimationFrame(animateGame);
 	gameOverEle.style.display = 'block';
-	gameOverEle.querySelector('span').innerHTML = 'GAME OVER <br> Your Score' + player.score;
+	gameOverEle.querySelector('span').innerHTML = 'GAME OVER <br> Your Score: ' + player.score;
 	gamePlay = false;
 	enemyVelocity = STARTING_ENEMIES_VELOCITY;
 	isPowerUp = false;
-	let tempEnemys = document.querySelectorAll('.baddy');
+	
 	let tempShots = document.querySelectorAll('.fireme');
-	let tempPowerUps = document.querySelectorAll('.power');
+
 
 	for(let i = 0; i < states.length; i++) {
 		states[i] = false;
 	}
 
-	for(let enemy of tempEnemys) {
-		enemy.parentNode.removeChild(enemy);
-	}
+	
 
 	for(let shot of tempShots) {
 		shot.parentNode.removeChild(shot);
 	}
 
-	for(let powerUp of tempPowerUps) {
-		powerUp.parentNode.removeChild(powerUp);
+	removeBadGuys();
+	removePowerUp();
+
+}
+
+function removeBadGuys() {
+	let tempEnemys = document.querySelectorAll('.baddy');
+	for(let enemy of tempEnemys) {
+		enemy.parentNode.removeChild(enemy);
 	}
 
 }
@@ -195,20 +215,21 @@ function mousedown(e) {
 }
 
 function powerUp(e, rand){
-	switch(rand){
+	switch((player.lives < PLAYER_LIVES / 4) ?  1: rand){
 			case 0:
+				createShoot(e, 0);
+				createShoot(e, 3.1);
+			break;
+			case 1:
 				createShoot(e, 0);
 				createShoot(e, 0.25);
 				createShoot(e, -0.25); 
 			break;
-			case 1:
+			case 2: 
+				
 				createShoot(e, 0);
 				createShoot(e, 2);
 				createShoot(e, -2);
-			break;
-			case 2: 
-				createShoot(e, 0);
-				createShoot(e, 3.1);
 			break;
 			case 3: 
 				createShoot(e, 0);
@@ -298,7 +319,18 @@ function badmaker() {
 	container.appendChild(div);
 }
 
+function removePowerUp() {
+	let tempPowerUps = document.querySelectorAll('.power');
+	for(let powerUp of tempPowerUps) {
+		powerUp.parentNode.removeChild(powerUp);
+	}
+}
+
+
 function powerupMaker() {
+	
+	removePowerUp();
+
 	let div = document.createElement('div');
 	let myIcon = 'fa-' + powerIcon[0];
 	let x, y, xmove, ymove;
@@ -392,32 +424,82 @@ function updateEnemyNumbers() {
 	}else if(player.score > (UPDATE_DIFFICULTY * 2) && !states[1]) {
 		enemyVelocity += VELOCITY_ENEMY_INCREASE;
 		states[1] = true;
-	}else if(player.score > (UPDATE_DIFFICULTY * 2) && !states[2]) {
+	}else if(player.score > (UPDATE_DIFFICULTY * 3) && !states[2]) {
 		enemyVelocity += VELOCITY_ENEMY_INCREASE;
 		states[2] = true;
-	}else if(player.score > (UPDATE_DIFFICULTY * 2) && !states[3]) {
+	}else if(player.score > (UPDATE_DIFFICULTY * 3) && !states[3]) {
 		enemyVelocity += VELOCITY_ENEMY_INCREASE;
 		states[3] = true;
+	}else if(player.score >= 1000 && !states[4]){
+		removeBadGuys();
+		setupBadguys(STARTING_NUMBER_ENEMIES * 2);
+		states[4] = true;
 	}
 
 }
 
 
+function runAnimation() {
+	index++;
+	if(index > 2) {
+		index = 0;
+		nextFrame();
+	}
+}
+
+function nextFrame() {
+	if(count >= powerColorFrames) {
+		count = 0;
+		return;
+	}
+	powerupCurrentColor = powerColors[count % powerColorFrames];
+	count++;
+}
 
 
+function powerColorUpdate() {
+
+	let tempPowerUps = document.querySelectorAll('.power');
+	for(let power of tempPowerUps) {
+		power.style.color = powerupCurrentColor;
+	}
+
+
+}
+
+function shooColorsPowerUp() {
+	if(!isPowerUp)return;
+
+	let tempShots = document.querySelectorAll('.fireme');
+	for(let shot of tempShots){
+		shot.style.backgroundColor  = powerupCurrentColor;
+		
+	}
+}
+
+
+function playerColorUpdate() {
+	if(!isPowerUp)return;
+	let box =  document.querySelector('.box');
+	box.style.backgroundColor = 'black';
+	let palyer = document.querySelector('#robotIcon');
+	palyer.style.color = powerupCurrentColor;
+}
 
 function playGame(argument) {
 	
 	if(gamePlay) {
-		//move shots
+	
 		moveShots();
-		//move dashboard
 		updateDash();
-		//move enemy
 		moveEnemy();
 		movePowerUps();
-
+		powerColorUpdate();
+		shooColorsPowerUp();
 		updateEnemyNumbers();
+		runAnimation();
+		playerColorUpdate();
+		
 		animateGame = requestAnimationFrame(playGame); 
 	}
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Orbitron');
+@import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
 body {
 	
@@ -14,7 +14,7 @@ body {
 .dashboard{
 	color: white;
 	font-size: 2em;
-	font-family: 'Orbitron', sans-serif;
+	font-family: 'Press Start 2P', cursive;
 
 }
 
@@ -47,7 +47,8 @@ body {
 	left: 100px;
 	background-color: #333;
 	color: white;
-	font-size: 2em;
+	font-size: 1.7em;
+	font-family: 'Press Start 2P', cursive;
 	text-align: center;
 }
 
@@ -86,7 +87,7 @@ body {
     border: 1px solid black;
     width: 30px;
     height: 30px;
-    background-color: blue;
+    background-color: white;
     -webkit-transition: all 0.1s ease-in-out;
     -moz-transition: all 0.1s ease-in-out;
     -o-transition: all 0.1s ease-in-out;
@@ -104,12 +105,18 @@ body {
     background-color: darkgrey;
 }
 
+#robotIcon {
+	position: relative;
+	left: -24px;
+	color: red;
+}
+
 
 .fireme{
     position: absolute;
     top:0;
     left:0;
-    background-color: rgba(255,255,0,0.8);
+    background-color: #FF7575;
     border-radius: 50px;
     z-index: 1;
 }
