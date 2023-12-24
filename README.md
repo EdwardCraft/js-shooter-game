@@ -30,4 +30,4 @@ This 2D Asteroids Game is a simple project built with JavaScript, HTML, and CSS.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/asteroids-game.git
+   git clone https://github.com/EdwardCraft/js-shooter-game.git
